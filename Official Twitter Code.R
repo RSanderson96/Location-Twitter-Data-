@@ -102,9 +102,6 @@ Loc <- subset(Loc, !is.na(Latitude) & !is.na(Longitude))
 
 # Set up empty map
 
-
-
-
 world <- ne_countries(scale = "medium", returnclass = "sf")
 class(world)
 
@@ -113,6 +110,23 @@ ggplot(data = world) +
   geom_point(data = Loc, aes(x = Longitude, y = Latitude), size = 3, 
              shape = 23, fill = "darkred") +
   coord_sf(xlim = c(-10.78, 1.89), ylim = c(49.74, 58.77), expand = FALSE)
+
+
+#Experimenting with time
+Time = test
+Time <- tidyr::separate(data = Time,
+                        col = created_at,
+                        into = c("Date", "Time"),
+                        sep = " ",
+                        remove = FALSE)
+
+Time$Year = format(as.Date(Time$Date, format="%Y-%m-%d"),"%Y")
+Time$Month = format(as.Date(Time$Date, format="%Y-%m-%d"),"%m")
+Time$Day = format(as.Date(Time$Date, format="%Y-%m-%d"),"%d")
+
+
+
+ts_plot(Time, by = "mins", trim = 0L, tz = "UTC")
 
 
 
