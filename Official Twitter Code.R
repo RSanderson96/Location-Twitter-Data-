@@ -14,6 +14,8 @@ install.packages("ggplot2")
 install.packages("dplyr")
 install.packages("readr")
 install.packages("askpass")
+install.packages("mapproj")
+install.packages(c("rnaturalearth", "rnaturalearthdata"))
 
 if (!requireNamespace("httpuv", quietly = TRUE)) {
   install.packages("httpuv")
@@ -24,6 +26,9 @@ library(rtweet)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(ggmap)
+library("rnaturalearth")
+library("rnaturalearthdata")
 
 Path = "C:/Users/b9054751/OneDrive - Newcastle University/Location-Twitter-Data-" 
 
@@ -54,10 +59,60 @@ token <- create_token(
 
 stream_tweets(
   c(-10.78,49.74,1.89,58.77), 
-  timeout = 120,
+  timeout = 1800,
   file_name = "test.json",
   parse = FALSE
 )
 test <- parse_stream("test.json")
 save(test, file = "test_live.Rda")
+
+#Where are the tweets located? - making a plot of places
+
+
+test %>%
+  count(place_full_name, sort = TRUE) %>%
+  mutate(place_full_name = reorder(place_full_name,n)) %>%
+  na.omit() %>%
+  top_n(25) %>%
+  ggplot(aes(x = place_full_name,y = n)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Location",
+       y = "Count",
+       title = "Twitter users - unique locations ")
+
+#Making a map
+
+# Seperate Geo-Information (Lat/Long) Into Two Variables
+Loc <- tidyr::separate(data = test,
+                       col = geo_coords,
+                       into = c("Latitude", "Longitude"),
+                       sep = ",",
+                       remove = FALSE)
+
+# Remove Parentheses
+Loc$Latitude <- stringr::str_replace_all(Loc$Latitude, "[c(]", "")
+Loc$Longitude <- stringr::str_replace_all(Loc$Longitude, "[)]", "")
+Loc
+# Store as numeric
+Loc$Latitude <- as.numeric(Loc$Latitude)
+Loc$Longitude <- as.numeric(Loc$Longitude)
+# Keep only those tweets where geo information is available
+Loc <- subset(Loc, !is.na(Latitude) & !is.na(Longitude))
+
+# Set up empty map
+
+
+
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+class(world)
+
+ggplot(data = world) +
+  geom_sf() +
+  geom_point(data = Loc, aes(x = Longitude, y = Latitude), size = 3, 
+             shape = 23, fill = "darkred") +
+  coord_sf(xlim = c(-10.78, 1.89), ylim = c(49.74, 58.77), expand = FALSE)
+
+
 
