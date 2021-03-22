@@ -39,14 +39,14 @@ Twitter20210318233427 = data.frame(Twitter20210318233427)
 write_as_csv(Twitter20210318233427, "Twitter20210318233427.csv", prepend_ids = TRUE, na = "", fileEncoding = "UTF-8")
 
 #Read in to combine from each run of the algorithm
-X1 = read.csv("Twitter20210318232128.csv")
-X2 = read.csv("Twitter20210318231400.csv")
-X3 = read.csv("Twitter20210318230940.csv")
-X4 = read.csv("Twitter20210318225922.csv")
-X5 = read.csv("Twitter20210318225028.csv")
-X6 = read.csv("Twitter20210318224859.csv")
-X7 = read.csv("Twitter20210318223427.csv")
-X8 = read.csv("Twitter20210318221849.csv")
+#X1 = read.csv("Twitter20210318232128.csv")
+#X2 = read.csv("Twitter20210318231400.csv")
+#X3 = read.csv("Twitter20210318230940.csv")
+#X4 = read.csv("Twitter20210318225922.csv")
+#X5 = read.csv("Twitter20210318225028.csv")
+#X6 = read.csv("Twitter20210318224859.csv")
+#X7 = read.csv("Twitter20210318223427.csv")
+#X8 = read.csv("Twitter20210318221849.csv")
 
 
 #Combine all collection phases
