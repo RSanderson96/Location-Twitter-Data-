@@ -5,17 +5,22 @@ Path = "C:/Users/b9054751/OneDrive - Newcastle University/Location-Twitter-Data-
 setwd(Path)
 
 #Packages
+install.packages("ggplot2")
 library(rtweet)
 library(ggplot2)
 library(dplyr)
 library("rnaturalearth")
 library("rnaturalearthdata")
+library(httr)
+library(rgdal)
+library(tmap)
+library(sf)
 
 # store api keys (Replace with project specific keys)
-api_key <- "xZ55XQya1s0o8h8xiYvPsIGH7"
-api_secret_key <- "CbaM0gV6YcU0gTD0kl6n2jIvr3blCYbYBZh5rpiawSBrFngWix"
-access_token <- "584062133-Gjn8op72kqx3dSM9bS8mkmMtU55bCUwxsFaCXh0w"
-access_token_secret <- "BaC6HdpgpWoaJH0JvhLM7IWG87mzdg8qwKd4rsMT5myqN"
+api_key <- "p384T1Ddaet8KSel3VfuKE4xq"
+api_secret_key <- "Bvaw3ztBETvJU3EfLTK788mVeom98jg2sx7w5eARSIw64qLb3j"
+access_token <- "584062133-bEjxU7NHZYI3ufUy7yNDX6Fphj7hOoTVOFzZifsT"
+access_token_secret <- "uIV2kma0a5EnZKxfkavIObi5LaCMp7QuulbNXopSOpIS6"
 
 # authenticate via web browser - don't forget to change the app!
 token <- create_token(
@@ -24,6 +29,16 @@ token <- create_token(
   consumer_secret = api_secret_key,
   access_token = access_token,
   access_secret = access_token_secret)
+
+stream_tweets(
+  c(-10.78,49.74,1.89,58.77), 
+  timeout = 10,
+  file_name = "test.json",
+  parse = FALSE
+)
+test <- parse_stream("test.json")
+save(test, file = "test_live.Rda")
+
 
 ## search 30day for up to 300 rstats tweets sent before the last week
 rt <-search_30day("place_country:GB",
@@ -35,21 +50,20 @@ rt <-search_30day("place_country:GB",
                   parse = TRUE,
                   token = token)
 
-
 #Dataframe and save as CSV file
 Twitter20210318233427 = rt
 Twitter20210318233427 = data.frame(Twitter20210318233427)
 write_as_csv(Twitter20210318233427, "Twitter20210318233427.csv", prepend_ids = TRUE, na = "", fileEncoding = "UTF-8")
 
 #Read in to combine from each run of the algorithm
-#X1 = read.csv("Twitter20210318232128.csv")
-#X2 = read.csv("Twitter20210318231400.csv")
-#X3 = read.csv("Twitter20210318230940.csv")
-#X4 = read.csv("Twitter20210318225922.csv")
-#X5 = read.csv("Twitter20210318225028.csv")
-#X6 = read.csv("Twitter20210318224859.csv")
-#X7 = read.csv("Twitter20210318223427.csv")
-#X8 = read.csv("Twitter20210318221849.csv")
+X1 = read.csv("Twitter20210318232128.csv")
+X2 = read.csv("Twitter20210318231400.csv")
+X3 = read.csv("Twitter20210318230940.csv")
+X4 = read.csv("Twitter20210318225922.csv")
+X5 = read.csv("Twitter20210318225028.csv")
+X6 = read.csv("Twitter20210318224859.csv")
+X7 = read.csv("Twitter20210318223427.csv")
+X8 = read.csv("Twitter20210318221849.csv")
 
 
 #Combine all collection phases
@@ -96,6 +110,27 @@ BB <- subset(BB, !is.na(Long1) & !is.na(Long3) & !is.na(Lat1) & !is.na(Lat3))
 
 BB$BB_Lat = ((BB$Lat1 + BB$Lat3)/2)
 BB$BB_Long = ((BB$Long1 + BB$Long3)/2)
+
+
+LSOA = readOGR(dsn = ('C:/Users/b9054751/OneDrive - Newcastle University/Location-Twitter-Data-'),layer="england_lsoa_2011")
+Population = read.csv("LSOA_Population.csv")
+LSOA<-merge (x = LSOA, y = Population, by.x = c("name"), by.y = c("LSOA_Name"))
+LSOA %>% left_join (Population)
+
+tm_shape(LSOA) + tm_fill(All_Ages)
+
+
+Tweet_points <- BB %>% 
+  st_as_sf(coords = c('BB_Long', 'BB_Lat'))
+
+
+tm_shape(LSOA) +
+  tm_fill("All_Ages", palette = "YlGnBu", title = "Population")#+
+  tm_shape(student_points_rastered) +
+  tm_raster(alpha = 0.7, title = '# of students')
+
+
+
 
 ggplot(data = world) +
   geom_sf() +
