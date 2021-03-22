@@ -5,18 +5,18 @@
 
 #Stage 1: Packages/Initial setup
 
-install.packages("rtweet")
-install.packages("ggmap")
-install.packages("igraph")
-install.packages("ggraph")
-install.packages("tidytext")
-install.packages("ggplot2")
-install.packages("dplyr")
-install.packages("readr")
-install.packages("askpass")
-install.packages("mapproj")
-install.packages(c("rnaturalearth", "rnaturalearthdata"))
-
+#install.packages("rtweet")
+#install.packages("ggmap")
+#install.packages("igraph")
+#install.packages("ggraph")
+#install.packages("tidytext")
+#install.packages("ggplot2")
+#install.packages("dplyr")
+#install.packages("readr")
+#install.packages("askpass")
+#install.packages("mapproj")
+#install.packages(c("rnaturalearth", "rnaturalearthdata"))
+#
 if (!requireNamespace("httpuv", quietly = TRUE)) {
   install.packages("httpuv")
 }
@@ -27,8 +27,9 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(ggmap)
-library("rnaturalearth")
-library("rnaturalearthdata")
+library("httr")
+#library("rnaturalearth")
+#library("rnaturalearthdata")
 
 Path = "C:/Users/b9054751/OneDrive - Newcastle University/Location-Twitter-Data-" 
 
@@ -37,15 +38,15 @@ setwd(Path)
 
 #Stage2: setting up the API
 
-## store api keys (Replace with project specific keys)
-api_key <- "13WsdQLKogoVzTUtZ0GcTGMZs"
-api_secret_key <- "hRM5zIOpHn0FTY0ilq33uxa9hisUrgdriddUqu8XZl0NMkEN43"
-access_token <- "584062133-vT9vwdtiLHVyxH6QXuJXuzMHIGy6kyZMIv9ohgUy"
-access_token_secret <- "ylY5um8tiJc49xdfKi5tCtfIANAEXxIXzFzRGhjuw4rbk"
+# store api keys (Replace with project specific keys)
+api_key <- "tlmRvxEQ3t2wzdiF1GKSUVThG"
+api_secret_key <- "jY6gwA0WJTeqENlI3fFB35FH65LorpLnqM0fUYCIvc3mD3yYsG"
+access_token <- "584062133-RFn4eRHcomGguOOjowNfi5gzSOV2Rj1XYXjPEnCv"
+access_token_secret <- "hTYHRErjjZBBx6gbZjCQGvIwPiMVNbGov9lcfIwhVN4tw"
 
-## authenticate via web browser - don't forget to change the app!
+# authenticate via web browser - don't forget to change the app!
 token <- create_token(
-  app = "Left Behind Connections", 
+  app = "Tweet_Gaps",
   consumer_key = api_key,
   consumer_secret = api_secret_key,
   access_token = access_token,
@@ -59,14 +60,26 @@ token <- create_token(
 
 stream_tweets(
   c(-10.78,49.74,1.89,58.77), 
-  timeout = 1800,
+  timeout = 100,
   file_name = "test.json",
   parse = FALSE
 )
 test <- parse_stream("test.json")
 save(test, file = "test_live.Rda")
 
-#Where are the tweets located? - making a plot of places
+
+#Collecting historical tweets with academic API
+## search 30day for up to 300 rstats tweets sent before the last week
+rt <-search_30day("place_country:GB",
+                  n = 3000,
+                  fromDate = 202103120000,
+                  toDate = 202103182330,
+                  env_name = "Tweets",
+                  safedir = "C:/Users/b9054751/OneDrive - Newcastle University/PhD/Data/Twitter/DATA",
+                  parse = TRUE,
+                  token = token)
+
+#3000 was limit - this was approx 30 minutes of twitter data
 
 
 test %>%
@@ -80,7 +93,6 @@ test %>%
   labs(x = "Location",
        y = "Count",
        title = "Twitter users - unique locations ")
-
 #Making a map
 
 # Seperate Geo-Information (Lat/Long) Into Two Variables
@@ -128,5 +140,5 @@ Time$Day = format(as.Date(Time$Date, format="%Y-%m-%d"),"%d")
 
 ts_plot(Time, by = "mins", trim = 0L, tz = "UTC")
 
-
+#Need to find an alternative - seeing tweets for a longer period of time using Academic API
 
