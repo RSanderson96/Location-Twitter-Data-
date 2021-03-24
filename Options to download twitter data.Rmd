@@ -1,0 +1,125 @@
+---
+title: "Options to download twitter data"
+author: "R Sanderson"
+date: "24/03/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+This page reflects on the different approaches that can be used to collect the twitter data for an extended period of time for the whole of the UK. Key issues include the length of time to cover, and the need for a large geographical area. This means there is a large volume of tweets to request, and care needs to be taken when specifying location. 
+
+For all approaches - need the packages and API Key
+
+```{r packages, eval = FALSE, echo = TRUE}
+#Packages
+library(rtweet)
+library(dplyr)
+library(httr)
+```
+
+```{r api, eval = FALSE, echo = TRUE}
+
+# store api keys (Replace with project specific keys)
+account_app = "Tweet_Gaps"
+api_key <- "p384T1Ddaet8KSel3VfuKE4xq"
+api_secret_key <- "Bvaw3ztBETvJU3EfLTK788mVeom98jg2sx7w5eARSIw64qLb3j"
+access_token <- "584062133-bEjxU7NHZYI3ufUy7yNDX6Fphj7hOoTVOFzZifsT"
+access_token_secret <- "uIV2kma0a5EnZKxfkavIObi5LaCMp7QuulbNXopSOpIS6"
+
+# authenticate via web browser
+token <- create_token(
+  app = account_app,
+  consumer_key = api_key,
+  consumer_secret = api_secret_key,
+  access_token = access_token,
+  access_secret = access_token_secret)
+  
+
+```
+
+## First approach: Using Twitter History
+
+The 30 day search and the full archive searches within RTweets are very similar code
+
+As shown below in search_30 day - 
+q = query. This used "place:country" because there is a limit to a 25 mile bounding box
+n = how many tweets to retrieve. 3000 appears to be the limit in a single request in the academic track
+fromDate - this is the earliest date that you wantr to access
+toDate - this is the latest data. Tweets are collected from newest to oldest, until number of tweets collected = n
+env_name - this is the dev environment in Twitter that you are subscribed to. To see the number of tweets you have left, go to the development environments and subscriptions
+safedir - where the backup is stored
+parse - makes data easier to process
+token - token made in previous section. 
+
+```{r 30_days, eval=FALSE, echo=TRUE}
+
+## search 30day for up to 300 rstats tweets sent before the last week
+rt <-search_30day(q = "place_country:GB",
+                  n = 100,  
+                  fromDate = 202103120000, #
+                  toDate = 202103182159,
+                  env_name = "Tweets",
+                  safedir = "C:/Users/b9054751/OneDrive - Newcastle University/Location-Twitter-Data-/Twitter_Data", 
+                  parse = TRUE, 
+                  token = token)
+
+```
+```{r full, eval=FALSE, echo=TRUE}
+#The same can be done with a full archive search.
+rt = search_fullarchive("place_country:GB",
+                        n = 500,
+                        fromDate = 202103120000,
+                        toDate = 202103182159,
+                        env_name = "Tweets",
+                        safedir = "C:/Users/b9054751/OneDrive - Newcastle University/Location-Twitter-Data-/Twitter_Data",
+                        parse = TRUE,
+                        token = token)
+```
+
+I found it is best to store each run of tweet collection in a CSV file - 
+
+```{r store, eval = FALSE, echo = TRUE}
+#Dataframe and save as CSV file
+Twitter_Run_1 = rt
+Twitter_Run_1 = data.frame(Twitter_Run_1)
+write_as_csv(Twitter_Run_1, "Twitter_Run_1.csv", prepend_ids = TRUE, na = "", fileEncoding = "UTF-8")
+
+```
+
+These files will then all need to be individually downloaded, connected together and filtered to remove duplicates, as each run should overlap to avoid moving tweets.
+
+```{r open, eval = FALSE, echo = TRUE}
+#Dataframe and save as CSV file
+Tweets = rbind(X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X12)
+Tweets = dplyr::distinct(Tweets)
+
+
+```
+
+Reflections - flawed, as these are collected in chunks, maximum seems to be 3000, and it takes a long time to only get an hour of data (in my case)
+Limited by subscription limits.
+To use all data collected, read in each csv file, combine and remove duplicates - duplicates may occur as the collection will need to be run multiple times!
+Overall, quite long-winded. Not very efficient. 
+
+##Second approach: Live Stream
+
+Here the stream_tweets option is used. The query is able to specify the bounding box around the uk, and the collection time is 3600 seconds (1 hours) The data will be stored as a json, then can be parsed and saved as a csv
+
+```{r stream, eval = FALSE, echo = TRUE}
+stream_tweets(
+  c(-10.79,49.8,1.99,58.86), 
+  timeout = 3600,
+  file_name = "test.json",
+  parse = FALSE
+)
+TweetColl_5 <- parse_stream("test.json")
+save(TweetColl_5, file = "TweetColl_5.Rda")
+TweetColl_5 = data.frame(TweetColl_5)
+write_as_csv(TweetColl_5, "TweetColl_5.csv", prepend_ids = TRUE, na = "", fileEncoding = "UTF-8")
+```
+
+This collects A LOT of twitter data, live. However, it can disconnect, seeming unreliable - therefore it could be improved. However, it does potentially offer access to more data as the historical data, but must be collected live, aka doesnt allow for R shutting down etc. 
