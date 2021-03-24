@@ -39,10 +39,10 @@ setwd(Path)
 #Stage2: setting up the API
 
 # store api keys (Replace with project specific keys)
-api_key <- "tlmRvxEQ3t2wzdiF1GKSUVThG"
-api_secret_key <- "jY6gwA0WJTeqENlI3fFB35FH65LorpLnqM0fUYCIvc3mD3yYsG"
-access_token <- "584062133-RFn4eRHcomGguOOjowNfi5gzSOV2Rj1XYXjPEnCv"
-access_token_secret <- "hTYHRErjjZBBx6gbZjCQGvIwPiMVNbGov9lcfIwhVN4tw"
+api_key <- "*********"
+api_secret_key <- "***********"
+access_token <- "**********"
+access_token_secret <- "************"
 
 # authenticate via web browser - don't forget to change the app!
 token <- create_token(
