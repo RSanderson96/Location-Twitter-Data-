@@ -25,10 +25,10 @@ library(httr)
 
 # store api keys (Replace with project specific keys)
 account_app = "Tweet_Gaps"
-api_key <- "p384T1Ddaet8KSel3VfuKE4xq"
-api_secret_key <- "Bvaw3ztBETvJU3EfLTK788mVeom98jg2sx7w5eARSIw64qLb3j"
-access_token <- "584062133-bEjxU7NHZYI3ufUy7yNDX6Fphj7hOoTVOFzZifsT"
-access_token_secret <- "uIV2kma0a5EnZKxfkavIObi5LaCMp7QuulbNXopSOpIS6"
+api_key <- "********"
+api_secret_key <- "***********"
+access_token <- "*************"
+access_token_secret <- "***********"
 
 # authenticate via web browser
 token <- create_token(
