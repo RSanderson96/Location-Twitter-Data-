@@ -17,7 +17,7 @@ access_token_secret <- "uIV2kma0a5EnZKxfkavIObi5LaCMp7QuulbNXopSOpIS6"
 
 # authenticate via web browser
 token <- create_token(
-  app = account_app
+  app = account_app,
   consumer_key = api_key,
   consumer_secret = api_secret_key,
   access_token = access_token,
@@ -54,5 +54,10 @@ rt = search_fullarchive("place_country:GB",
 
 #Reflections - flawed, as these are collected in chunks, maximum seems to be 3000, and it takes a long time to only get an hour of data (in my case)
 #Limited by subscription limits.
+#To use all data collected, read in each csv file, combine and remove duplicates - duplicates may occur as the collection will need to be run multiple times!
+#Combine all collection phases
+Tweets = rbind(X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X12)
+#clean up any duplicate tweets from the data frame using #dplyr::distinct
+Tweets = dplyr::distinct(Tweets)
 
 
