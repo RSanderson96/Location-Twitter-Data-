@@ -1,4 +1,52 @@
-#Where are the tweets located? - making a plot of places
+#Packages
+library(rtweet)
+library(ggplot2)
+library(dplyr)
+library("rnaturalearth")
+library("rnaturalearthdata")
+library(httr)
+library(rgdal)
+library(tmap)
+library(sf)
+
+
+library(plyr)
+library(readr)
+
+#Import all twitter data 
+
+#setwd(" ") #Path should be set to overall project
+mydir = "Collected_Data" #Folder with data in
+myfiles = list.files(path=mydir, pattern="*.csv", full.names=TRUE)
+myfiles
+dat_csv = ldply(myfiles, read_csv)
+Tweets = data.frame(dat_csv)
+
+
+Tweets = dplyr::distinct(Tweets) #checking that duplicate rows are removed - this should not be needed in final code
+
+
+#How many unique usernames?
+
+#Timeline of tweeting?
+
+#Things to change - 
+  #"3 hours" - this is the level of aggregation, needs to be adjusted to the dataset
+  #Consider themes etc
+  #Check titles
+
+ts_plot(Tweets, "3 hours") +
+  ggplot2::theme_minimal() +
+  ggplot2::theme(plot.title = ggplot2::element_text(face = "bold")) +
+  ggplot2::labs(
+    x = NULL, y = NULL,
+    title = "Frequency of tweets over x time period",
+    subtitle = "Twitter status (tweet) counts aggregated using three-hour intervals",
+    caption = "\nSource: Data collected from Twitter's REST API via rtweet"
+  )
+
+#Where are the tweets located? - making a plot of places that have the most tweets
+
 Place= Tweets[,c(1,2,3,64,65,66,69,70,71,73,76,80)]
 Place %>%
   count(place_full_name, sort = TRUE) %>%
@@ -65,7 +113,7 @@ ggplot(data = world) +
   coord_sf(xlim = c(-10.78, 1.89), ylim = c(49.74, 58.77), expand = FALSE)
 
 # Seperate Geo-Information (Lat/Long) Into Two Variables
-Loc = Tweets
+Loc = Test_RS
 
 
 Loc <- tidyr::separate(data = Tweets,
@@ -94,6 +142,12 @@ class(world)
 
 ggplot(data = world) +
   geom_sf() +
-  geom_point(data = Loc, aes(x = Longitude, y = Latitude), size = 3, 
+  geom_point(data = Loc, aes(x = Longitude, y = Latitude), size = 1, 
+             shape = 23, fill = "darkred") +
+  coord_sf(xlim = c(-14.02, 2.09), ylim = c(49.67, 61.06), expand = FALSE)
+
+ggplot(data = world) +
+  geom_sf() +
+  geom_point(data = BB, aes(x = BB_Long, y = BB_Lat), size = 1, 
              shape = 23, fill = "darkred") +
   coord_sf(xlim = c(-10.78, 1.89), ylim = c(49.74, 58.77), expand = FALSE)
