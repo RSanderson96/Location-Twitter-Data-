@@ -12,6 +12,7 @@ library(sf)
 
 library(plyr)
 library(readr)
+library(rtweet)
 
 #Import all twitter data 
 
@@ -61,6 +62,72 @@ Place %>%
        title = "Twitter users - unique locations ")
 
 #Making a map
+
+#Making coordinates out of the geocode and bounding box - need to pick geocode first, THEN bounding box
+
+
+Geo_Code <- function(DATA){ #function to find coordinates for each tweet
+  data = DATA
+  #turn geo_coords & Bounding box columns into Latitude/Longitude columns
+  data <- tidyr::separate(data = data,
+                       col = geo_coords,
+                       into = c("geo_lat", "geo_long"),
+                       sep = " ",
+                       remove = FALSE)
+  data <- tidyr::separate(data = data,
+                      col = bbox_coords,
+                      into = c("BB_long1", "BB_long2", "BB_long3", "BB_long4", "BB_lat1", "BB_lat2", "BB_lat3", "BB_lat4"),
+                      sep = " ",
+                      remove = FALSE)
+  
+  #Delete duplicate columns from bounding box
+  drop <- c("BB_long2", "BB_long4", "BB_lat2", "BB_lat4")
+  data <- data[,!(names(data) %in% drop)]
+  
+  #Turn all lat/long into numeric - will have NAs in output
+  cols <- c("geo_lat", "geo_long", "BB_long1", "BB_long3", "BB_lat1", "BB_lat3")
+  data[cols] <- sapply(data[cols],as.numeric)
+  #sapply(data, class)
+  
+  #Latitude column = geo first as preferred
+  data["Calc_Lat"] = data$geo_lat
+  data["Calc_Long"] = data$geo_long
+  
+  #Remove rows with no bounding box data - if they have a geo-code, they'll have a bounding box too
+  data <- subset(data, !is.na(BB_lat1))  
+  
+  #assiging column numbers as variables - this may change by dataframe!
+  C = nrow(data)
+  D = which(colnames(data)=="Calc_Lat")
+  E = which(colnames(data)== "BB_lat1")
+  G = which(colnames(data)== "BB_lat3")
+  H = which(colnames(data)=="Calc_Long")
+  I = which(colnames(data)== "BB_long1")
+  J = which(colnames(data)== "BB_long3")
+  
+  #if geoded is NA, and bounding box is not NA, need to put in midpoint 
+  
+  
+#Latitude - if the row in the column is NA, it will be replaced by the equivalent midpoint of the bounding box coords
+  for (i in 1:C){ 
+    if (is.na(data[i,D])){
+      data[i,D]<- ((data[i,E]+ data[i,G])/2)
+      }
+  }
+  
+  #Longitude - if the row in the column is NA, it will be replaced by the equivalent midpoint of the bounding box coords
+  for (i in 1:C){ 
+    if (is.na(data[i,H])){
+      data[i,H]<- ((data[i,I]+ data[i,J])/2)
+    }
+  }
+  #Output: the reduced and located dataset
+  return(data)
+}
+
+Tweets = Geo_Code(Tweets)
+     
+
 
 #Experimenting with using bounding box
 Bound_Box = Place[,c(2,3,7,9)]
@@ -113,7 +180,7 @@ ggplot(data = world) +
   coord_sf(xlim = c(-10.78, 1.89), ylim = c(49.74, 58.77), expand = FALSE)
 
 # Seperate Geo-Information (Lat/Long) Into Two Variables
-Loc = Test_RS
+Loc = Tweets
 
 
 Loc <- tidyr::separate(data = Tweets,
