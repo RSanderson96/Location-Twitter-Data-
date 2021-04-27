@@ -10,9 +10,9 @@ library(rgdal)
 library(tmap)
 library(sf)
 library(readr)
-library("sp")
+#library("sp")
 library("rgeos")
-
+library("tcltk")
 library(raster)
 library(adehabitatHR)
 #library(tidyr)
@@ -146,21 +146,28 @@ Geo_Code <- function(DATA){ #function to find coordinates for each tweet
   
   #if geoded is NA, and bounding box is not NA, need to put in midpoint 
   
-  
 #Latitude - if the row in the column is NA, it will be replaced by the equivalent midpoint of the bounding box coords
+  pb <- txtProgressBar(min = 0, max = C, style = 3)
   for (i in 1:C){ 
     if (is.na(data[i,D])){
       data[i,D]<- ((data[i,E]+ data[i,G])/2)
-      }
+    }
+    setTxtProgressBar(pb, i)
   }
+  close(pb)
   print ("latitude complete")
+  
   #Longitude - if the row in the column is NA, it will be replaced by the equivalent midpoint of the bounding box coords
+  pb <- txtProgressBar(min = 0, max = C, style = 3)
   for (i in 1:C){ 
     if (is.na(data[i,H])){
       data[i,H]<- ((data[i,I]+ data[i,J])/2)
     }
+    setTxtProgressBar(pb, i)
   }
+  close(pb)
   print ("longitude complete")
+  
   #Output: the reduced and located dataset
   return(data)
 }
@@ -208,11 +215,10 @@ X<- Tweet_Points %>%
 Tweet_Points[,"Calc_Long"] = X[,2]
 Tweet_Points[,"Calc_Lat"] = X[,1]
 #write.csv(Tweet_Points, "Tweet_Arc_27700_2.csv")
-
+rm(X, Tweets)
 
 #Turn the coordinates into a spatial file
 Tweet_Points <-SpatialPointsDataFrame(Tweet_Points[,9:10], Tweet_Points, proj4string = CRS("+init=EPSG:27700"))
-#Tweet_Points <-SpatialPointsDataFrame(Tweet_Points[,9:10], Tweet_Points, proj4string = CRS("+init=EPSG:4326"))
 
 #writeOGR(Tweet_Points, dsn = "D:/Location-Twitter-Data-2/Shapes", layer =  "Tweet_Points_27700_4", driver="ESRI Shapefile")
 
@@ -220,16 +226,16 @@ Tweet_Points <-SpatialPointsDataFrame(Tweet_Points[,9:10], Tweet_Points, proj4st
 MSOA_Population = read.csv("MSOA_Population.csv")
 MSOA = st_read(dsn = (Path),layer="MSOA_Boundaries")
 MSOA <- merge(MSOA, MSOA_Population, by.x="msoa11cd", by.y="MSOA_Code")
-MSOA_SP = as(MSOA, "Spatial")
+MSOA = as(MSOA, "Spatial")
 
 ##proj4string(MSOA_SP) <- CRS("+init=EPSG:27700")
 #proj4string(Tweet_Points) <- CRS("+init=EPSG:27700")
 
-tm_shape(MSOA_SP) + tm_fill(col = "#f0f0f0") + tm_borders(alpha=.8, col = "black") +
+tm_shape(MSOA) + tm_fill(col = "#f0f0f0") + tm_borders(alpha=.8, col = "black") +
   tm_shape(Tweet_Points) + tm_dots(col = "blue")
 
 #Assign an MSOA for each tweet
-pip <- over(Tweet_Points, MSOA_SP)
+pip <- over(Tweet_Points, MSOA)
 Tweet_Points@data <- cbind(Tweet_Points@data, pip)
 
 #How many tweets are in each MSOA?
@@ -255,27 +261,28 @@ plot(kde.output)
 kde <- raster(kde.output)
 # sets projection to British National Grid
 projection(kde) <- CRS("+init=EPSG:27700")
-#projection(kde) <- CRS("+init=EPSG:4326")
+=
 
 #library(tmap)
 
 # maps the raster in tmap, "ud" is the density variable
 tm_shape(kde) + tm_raster("ud")
 
+
 library(tmaptools) # provides a set of tools for processing spatial data
 
 # creates a bounding box based on the extents of the Output.Areas polygon
-bounding_box <- bb(MSOA_SP)
+bounding_box <- bb(MSOA)
 
 # maps the raster within the bounding box
 tm_shape(kde, bbox = bounding_box) + tm_raster("ud")
 
 # mask the raster by the output area polygon
-masked_kde <- mask(kde, MSOA_SP)
+masked_kde <- mask(kde, MSOA)
 
 # maps the masked raster, also maps white output area boundaries
 tm_shape(masked_kde, bbox = bounding_box) + tm_raster("ud", style = "quantile", n = 100, legend.show = FALSE, palette = "YlGnBu") +
-  tm_shape(MSOA_SP) + tm_borders(alpha=.3, col = "white") +
+  tm_shape(MSOA) + tm_borders(alpha=.3, col = "white") +
   tm_layout(frame = FALSE)
 
 # compute homeranges for 75%, 50%, 25% of points, objects are returned as spatial polygon data frames
@@ -285,7 +292,7 @@ range25 <- getverticeshr(kde.output, percent = 25)
 
 tmap_mode("view") 
 # the code below creates a map of several layers using tmap
-tm_shape(MSOA_WGS) + tm_fill(col = "#f0f0f0") + tm_borders(alpha=.8, col = "black") +
+tm_shape(MSOA) + tm_fill(col = "#f0f0f0") + tm_borders(alpha=.8, col = "black") +
   tm_shape(Tweet_Points) + tm_dots(col = "blue") +
   tm_shape(range75) + tm_borders(alpha=.7, col = "#fb6a4a", lwd = 2) + tm_fill(alpha=.1, col = "#fb6a4a") +
   tm_shape(range50) + tm_borders(alpha=.7, col = "#de2d26", lwd = 2) + tm_fill(alpha=.1, col = "#de2d26") +
