@@ -177,4 +177,3 @@ lookup_coords_nominatim <- function(address) {
   rtweet:::as.coords(place = place, box = boxp, point = point) # call an internal function
 }
 
-rt <- parse_stream("LB_Tweets.json")
