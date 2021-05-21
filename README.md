@@ -1,7 +1,7 @@
 # Location-Twitter-Data-
 A code for collating twitter data over time - currently still a work in progress
 
-Create a seperate R file named "Twitter_Keys"
+To stream twitter data using this code, first create a seperate R file named "Twitter_Keys"
 
 Write the code below to authenticate via web browser - find credentials in Twitter
 
