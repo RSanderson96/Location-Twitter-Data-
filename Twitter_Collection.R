@@ -1,3 +1,5 @@
+#This code shows a range of options to collect twitter data through the API using RStudio
+
 
 Path = "C:/Users/b9054751/OneDrive - Newcastle University/Location-Twitter-Data-"
 
@@ -6,18 +8,11 @@ setwd(Path)
 
 #Packages
 library(rtweet)
-#library(ggplot2)
-#library(dplyr)
-#library("rnaturalearth")
-#library("rnaturalearthdata")
-#library(httr)
-#library(rgdal)
-#library(tmap)
-#library(sf)
 
-#1) Get twitter keys from seperate (private) R file
+#Get twitter keys from seperate (private) R file
 source("Twitter_Keys.R")
 
+#Basic streaming - connect to API for 1% live tweets
 
 stream_tweets(
   c(-10.79,49.8,1.99,58.86), 
@@ -27,80 +22,45 @@ stream_tweets(
 )
 
 
-TweetColl_18 <- parse_stream("test.json")
-save(TweetColl_18, file = "TweetColl_18.Rda")
-TweetColl_18 = data.frame(TweetColl_18)
-write_as_csv(TweetColl_18, "TweetColl_18.csv", prepend_ids = TRUE, na = "", fileEncoding = "UTF-8")
+#Save the tweets collected 
+Tweets <- parse_stream("test.json")
+Tweets = data.frame(Tweets)
+write_as_csv(Tweets, "Tweets.csv", prepend_ids = TRUE, na = "", fileEncoding = "UTF-8")
 
 
 ############################################LIMITED BY SUBSCRIPTIONS - ONLY MANAGED TO GET APPROXIMATELY 2 HOURS OF TWEETS
 
 ## search 30day for up to 300 rstats tweets sent before the last week
 rt <-search_30day("place_country:GB",
-                  n = 100,
-                  fromDate = 202103120000,
-                  toDate = 202103182159,
+                  n = 10,
+                  fromDate = 202105180000, #Earlier date
+                  toDate = 202105190000, #Later date
                   env_name = "Tweets",
-                  safedir = "C:/Users/b9054751/OneDrive - Newcastle University/Location-Twitter-Data-/Twitter_Data",
+                  safedir = paste0(Path, "/Tweets"),
                   parse = TRUE,
                   token = token)
 
+#Remember to turn tweets into a dataframe and save as CSV file
+Tweets = data.frame(rt)
+write_as_csv(Tweets, "Tweets.csv", prepend_ids = TRUE, na = "", fileEncoding = "UTF-8")
+
 rt = search_fullarchive("place_country:GB",
                    n = 500,
-                   fromDate = 202103120000,
-                   toDate = 202103182159,
+                   fromDate = 202105180000,
+                   toDate = 202105190000,
                    env_name = "Tweets",
-                   safedir = "C:/Users/b9054751/OneDrive - Newcastle University/Location-Twitter-Data-/Twitter_Data",
+                   safedir = paste0(Path, "/Tweets"),
                    parse = TRUE,
                    token = token)
 
-#Dataframe and save as CSV file
-Twitter20210318215826 = rt
-Twitter20210318215826 = data.frame(Twitter20210318215826)
-write_as_csv(Twitter20210318215826, "Twitter20210318215826.csv", prepend_ids = TRUE, na = "", fileEncoding = "UTF-8")
-
-#Read in to combine from each run of the algorithm
-X1 = read.csv("Twitter20210318232128.csv")
-X2 = read.csv("Twitter20210318231400.csv")
-X3 = read.csv("Twitter20210318230940.csv")
-X4 = read.csv("Twitter20210318225922.csv")
-X5 = read.csv("Twitter20210318225028.csv")
-X6 = read.csv("Twitter20210318224859.csv")
-X7 = read.csv("Twitter20210318223427.csv")
-X8 = read.csv("Twitter20210318221849.csv")
-X9 = read.csv("Twitter20210318221350.csv")
-X10 = read.csv("Twitter20210318220931.csv")
-X11 = read.csv("Twitter20210318220358.csv")
-X12 = read.csv("Twitter20210318215826.csv")
-
-#Combine all collection phases
-Tweets = rbind(X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11, X12)
-
-#clean up any duplicate tweets from the data frame using #dplyr::distinct
-Tweets = dplyr::distinct(Tweets)
+#Remember to turn tweets into a dataframe and save as CSV file
+Tweets = data.frame(rt)
+write_as_csv(Tweets, "Tweets.csv", prepend_ids = TRUE, na = "", fileEncoding = "UTF-8")
 
 
 
-
-
-rt <- search_tweets(include_rts=FALSE, "lang:en", geocode = UK, n = 500000, retryonratelimit = TRUE, type="recent")
-
-Test_RS5 = rt
-Test_RS5 = data.frame(Test_RS5)
-write_as_csv(Test_RS5, "Test_RS5.csv", prepend_ids = TRUE, na = "", fileEncoding = "UTF-8")
-
-
-TweetColl_7 <- parse_stream("test.json")
-save(TweetColl_6, file = "TweetColl_6.Rda")
-TweetColl_6 = data.frame(TweetColl_6)
-write_as_csv(TweetColl_6, "TweetColl_6.csv", prepend_ids = TRUE, na = "", fileEncoding = "UTF-8")
-
-rt2<-lat_lng(rt, coords = c("coords_coords", "bbox_coords", "geo_coords"))
-
-
-
-UK = lookup_coords_nominatim("uk")
-
+#Search tweets option - last 7 days
+#Geocode needs to be set up - 
 
 lookup_coords_nominatim <- function(address) {
   if (missing(address)) stop("must supply address", call. = FALSE)
@@ -175,5 +135,15 @@ lookup_coords_nominatim <- function(address) {
     place <- r$display_name
   }
   rtweet:::as.coords(place = place, box = boxp, point = point) # call an internal function
-}
+} #Code found on Github
+UK = lookup_coords_nominatim("uk") #UK chosen as location
+
+#Collect tweets
+rt <- search_tweets(include_rts=FALSE, "lang:en", geocode = UK, n = 10, retryonratelimit = TRUE, type="recent")
+Tweets = data.frame(rt)
+write_as_csv(Tweets, "Tweets.csv", prepend_ids = TRUE, na = "", fileEncoding = "UTF-8")
+
+
+
+
 
