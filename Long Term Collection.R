@@ -3,22 +3,10 @@ library(rtweet)
 
 Path = getwd()
 
-#1) 
+#1) Get twitter keys from seperate (private) R file
 source("Twitter_Keys.R")
 
-#Store api keys (Replace with project specific keys, these won't work!)
-#api_key <- "p384T1Ddaet8KSel3VfuKE4xq"
-#api_secret_key <- "Bvaw3ztBETvJU3EfLTK788mVeom98jg2sx7w5eARSIw64qLb3j"
-#access_token <- "584062133-bEjxU7NHZYI3ufUy7yNDX6Fphj7hOoTVOFzZifsT"
-#access_token_secret <- "uIV2kma0a5EnZKxfkavIObi5LaCMp7QuulbNXopSOpIS6"
 
-# authenticate via web browser - don't forget to change the app!
-#token <- create_token(
-#  app = "Tweet_Gaps",
-#  consumer_key = api_key,
-#  consumer_secret = api_secret_key,
-#  access_token = access_token,
-# access_secret = access_token_secret)
 
 filename <- "LB_Tweets.json" #File to store tweets - this can be accessed in another R window during collection
 
