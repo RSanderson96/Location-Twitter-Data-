@@ -1,5 +1,5 @@
 # Location-Twitter-Data-
-A code for collating twitter data over time
+A code for collating twitter data over time - currently still a work in progress
 
 Create a seperate R file named "Twitter_Keys"
 
