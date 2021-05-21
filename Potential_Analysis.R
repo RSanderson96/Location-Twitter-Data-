@@ -216,17 +216,17 @@ Tweet_Points[,"Calc_Long"] = X[,2]
 Tweet_Points[,"Calc_Lat"] = X[,1]
 #write.csv(Tweet_Points, "Tweet_Arc_27700_2.csv")
 rm(X, Tweets)
-
 #Turn the coordinates into a spatial file
 Tweet_Points <-SpatialPointsDataFrame(Tweet_Points[,9:10], Tweet_Points, proj4string = CRS("+init=EPSG:27700"))
 
 #writeOGR(Tweet_Points, dsn = "D:/Location-Twitter-Data-2/Shapes", layer =  "Tweet_Points_27700_4", driver="ESRI Shapefile")
 
 #Import MSOA Information
+
 MSOA_Population = read.csv("MSOA_Population.csv")
-MSOA = st_read(dsn = (Path),layer="MSOA_Boundaries")
+MSOA = st_read(dsn = (Path) ,layer="MSOA_Boundaries")
 MSOA <- merge(MSOA, MSOA_Population, by.x="msoa11cd", by.y="MSOA_Code")
-MSOA = as(MSOA, "Spatial")
+MSOA_SP = as(MSOA, "Spatial")
 
 ##proj4string(MSOA_SP) <- CRS("+init=EPSG:27700")
 #proj4string(Tweet_Points) <- CRS("+init=EPSG:27700")
@@ -235,14 +235,15 @@ tm_shape(MSOA) + tm_fill(col = "#f0f0f0") + tm_borders(alpha=.8, col = "black") 
   tm_shape(Tweet_Points) + tm_dots(col = "blue")
 
 #Assign an MSOA for each tweet
-pip <- over(Tweet_Points, MSOA)
+pip <- over(Tweet_Points, MSOA_SP)
 Tweet_Points@data <- cbind(Tweet_Points@data, pip)
-
+rm(MSOA_)
 #How many tweets are in each MSOA?
+Tweet_Points@data<- Tweet_Points@data[,c(1:18)]
 TperMSOA<-Tweet_Points@data %>% count(MSOA_Name)
 
-C <-MSOA_SP %>% left_join(TperMSOA, by="MSOA_Name", all = T)
-C<-merge (x = MSOA_SP, y = TperMSOA, by="MSOA_Name", all = T)
+C <-MSOA %>% left_join(TperMSOA, by="MSOA_Name", all = T)
+C<-merge (x = MSOA, y = TperMSOA, by="MSOA_Name", all = T)
 
 
 tm_shape (C) +
@@ -261,7 +262,7 @@ plot(kde.output)
 kde <- raster(kde.output)
 # sets projection to British National Grid
 projection(kde) <- CRS("+init=EPSG:27700")
-=
+
 
 #library(tmap)
 

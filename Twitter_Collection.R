@@ -15,7 +15,7 @@ library(rtweet)
 #library(tmap)
 #library(sf)
 
-# store api keys (Replace with project specific keys)
+# store api keys (Replace with project specific keys, these won't work!)
 api_key <- "p384T1Ddaet8KSel3VfuKE4xq"
 api_secret_key <- "Bvaw3ztBETvJU3EfLTK788mVeom98jg2sx7w5eARSIw64qLb3j"
 access_token <- "584062133-bEjxU7NHZYI3ufUy7yNDX6Fphj7hOoTVOFzZifsT"
@@ -39,10 +39,10 @@ stream_tweets(
 )
 
 
-TweetColl_12 <- parse_stream("test.json")
-save(TweetColl_12, file = "TweetColl_12.Rda")
-TweetColl_12 = data.frame(TweetColl_12)
-write_as_csv(TweetColl_12, "TweetColl_12.csv", prepend_ids = TRUE, na = "", fileEncoding = "UTF-8")
+TweetColl_18 <- parse_stream("test.json")
+save(TweetColl_18, file = "TweetColl_18.Rda")
+TweetColl_18 = data.frame(TweetColl_18)
+write_as_csv(TweetColl_18, "TweetColl_18.csv", prepend_ids = TRUE, na = "", fileEncoding = "UTF-8")
 
 
 ############################################LIMITED BY SUBSCRIPTIONS - ONLY MANAGED TO GET APPROXIMATELY 2 HOURS OF TWEETS
@@ -189,3 +189,4 @@ lookup_coords_nominatim <- function(address) {
   rtweet:::as.coords(place = place, box = boxp, point = point) # call an internal function
 }
 
+rt <- parse_stream("LB_Tweets.json")
