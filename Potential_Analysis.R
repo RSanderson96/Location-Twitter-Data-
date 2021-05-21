@@ -1,44 +1,31 @@
 #Packages
-#library(rtweet)
-#library(ggplot2)
 library(plyr)
 library(dplyr)
-#library("rnaturalearth")
-#library("rnaturalearthdata")
-#library(httr)
 library(rgdal)
 library(tmap)
 library(sf)
 library(readr)
-#library("sp")
 library("rgeos")
 library("tcltk")
 library(raster)
 library(adehabitatHR)
-#library(tidyr)
-#library(lubridate)
+library(tmaptools) # provides a set of tools for processing spatial data
 
 
-#Import all twitter data 
+
+#Import all twitter data that has been collected
+#This is expecting an unzipped foulder called "Collected_Data", with all data as csv files
 
 Path = getwd()
-#setwd(Path) #Path should be set to overall project
-
 
 mydir = "Collected_Data" #Folder with data in
-myfiles = list.files(path=mydir, pattern="*.csv", full.names=TRUE)
-#myfiles
-dat_csv = ldply(myfiles, read_csv)
-Tweets = data.frame(dat_csv)
-
-#Tweets = Tweets %>% select(-"X1")
-
-Tweets = dplyr::distinct(Tweets) #checking that duplicate rows are removed - this should not be needed in final code
+myfiles = list.files(path=mydir, pattern="*.csv", full.names=TRUE) #retrieve list of files
+dat_csv = ldply(myfiles, read_csv) #import all csv files
+Tweets = data.frame(dat_csv) #produces a dataframe of all tweets
+Tweets = dplyr::distinct(Tweets) #checking that duplicate rows are removed
 
 
-#How many unique usernames?
-
-#Timeline of tweeting?
+#Timeline of tweeting - this plots a chart of when all tweets were collected
 
 #Things to change - 
   #"3 hours" - this is the level of aggregation, needs to be adjusted to the dataset
@@ -170,7 +157,7 @@ Geo_Code <- function(DATA){ #function to find coordinates for each tweet
   
   #Output: the reduced and located dataset
   return(data)
-}
+} #This is a function that identifies coordinates where available, using the centrepoints of bounding boxes
 
 Tweets = Geo_Code(Tweets)
      
@@ -185,8 +172,9 @@ ggplot(data = world) +
   coord_sf(xlim = c(-14.02, 2.09), ylim = c(49.67, 61.06), expand = FALSE)
 
 
-#https://data.cdrc.ac.uk/system/files/practical6_0.html
+#https://data.cdrc.ac.uk/system/files/practical6_0.html - working with point data
 
+#Simplify the table to focus on aspects of interest
 Tweet_Points = Tweets[,c("user_id", "created_at","source","Calc_Lat", "Calc_Long")]
 
 #Extracting temporal data - may be used later
@@ -204,8 +192,6 @@ Tweet_Points$Hour<- as.numeric(Tweet_Points$Hour)
 Tweet_Points$Minute<- as.numeric(Tweet_Points$Minute)
 Tweet_Points$Second<- as.numeric(Tweet_Points$Second)
 
-#write.csv(Tweet_Points, "Tweet_Arc_4326.csv")
-
 #Need to transform the twitter points into British National Grid
 X<- Tweet_Points %>%
   st_as_sf(coords = c("Calc_Long", "Calc_Lat"), crs = 4326) %>%
@@ -219,18 +205,13 @@ rm(X, Tweets)
 #Turn the coordinates into a spatial file
 Tweet_Points <-SpatialPointsDataFrame(Tweet_Points[,9:10], Tweet_Points, proj4string = CRS("+init=EPSG:27700"))
 
-#writeOGR(Tweet_Points, dsn = "D:/Location-Twitter-Data-2/Shapes", layer =  "Tweet_Points_27700_4", driver="ESRI Shapefile")
-
 #Import MSOA Information
-
 MSOA_Population = read.csv("MSOA_Population.csv")
 MSOA = st_read(dsn = (Path) ,layer="MSOA_Boundaries")
 MSOA <- merge(MSOA, MSOA_Population, by.x="msoa11cd", by.y="MSOA_Code")
 MSOA_SP = as(MSOA, "Spatial")
 
-##proj4string(MSOA_SP) <- CRS("+init=EPSG:27700")
-#proj4string(Tweet_Points) <- CRS("+init=EPSG:27700")
-
+#This makes a map of the points on the MSOA shapefile
 tm_shape(MSOA) + tm_fill(col = "#f0f0f0") + tm_borders(alpha=.8, col = "black") +
   tm_shape(Tweet_Points) + tm_dots(col = "blue")
 
@@ -245,9 +226,10 @@ TperMSOA<-Tweet_Points@data %>% count(MSOA_Name)
 C <-MSOA %>% left_join(TperMSOA, by="MSOA_Name", all = T)
 C<-merge (x = MSOA, y = TperMSOA, by="MSOA_Name", all = T)
 
-
+#This makes a map of the MSOAs coloured by the number of tweets.
 tm_shape (C) +
   tm_polygons ("n")
+
 ###################
 
 #Kernel Density Analysis
@@ -255,7 +237,6 @@ tm_shape (C) +
 
 
 kde.output <- kernelUD(Tweet_Points, h="href", grid = 1000)
-
 plot(kde.output)
 
 # converts to raster
@@ -263,14 +244,9 @@ kde <- raster(kde.output)
 # sets projection to British National Grid
 projection(kde) <- CRS("+init=EPSG:27700")
 
-
-#library(tmap)
-
 # maps the raster in tmap, "ud" is the density variable
 tm_shape(kde) + tm_raster("ud")
 
-
-library(tmaptools) # provides a set of tools for processing spatial data
 
 # creates a bounding box based on the extents of the Output.Areas polygon
 bounding_box <- bb(MSOA)
@@ -300,8 +276,6 @@ tm_shape(MSOA) + tm_fill(col = "#f0f0f0") + tm_borders(alpha=.8, col = "black") 
   tm_shape(range25) + tm_borders(alpha=.7, col = "#a50f15", lwd = 2) + tm_fill(alpha=.1, col = "#a50f15") +
   tm_layout(frame = FALSE)
 
-
-#writeOGR(Tweet_Points, dsn = "D:/Location-Twitter-Data-2/Shapes", layer =  "Tweet_Points", driver="ESRI Shapefile")
 
 
 
